@@ -20,30 +20,28 @@ router.post('/', function (req, res) {
   // The name of the input field (i.e. "file") is used to retrieve the uploaded file
   let thrFile = req.files.file;
 
-  if (!thrFile.name.endsWith(".thr")) {
+  if ((!thrFile.name.endsWith(".thr")) && (!thrFile.name.endsWith(".gcode"))) {
     return res.status(400).send("Invalid file type");
   }
-  var filename = thrFile.name.replace(".thr", "");
+  if (thrFile.name.endsWith(".gcode")) {
+    //var filename = thrFile.name.replace(".gcode", "");
 
-  if (fs.existsSync(__dirname + "/../../files/" + filename + ".thr"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + ".thr");
-  if (fs.existsSync(__dirname + "/../../files/" + filename + ".gcode"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + ".gcode");
-  if (fs.existsSync(__dirname + "/../../files/" + filename + ".png"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + ".png");
-  if (fs.existsSync(__dirname + "/../../files/" + filename + "-small.png"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + "-small.png");
-  if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).gcode"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).gcode");
-  if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).png"))
-    fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).png");
-
-  // Use the mv() method to place the file somewhere on your server
-  thrFile.mv(__dirname + "/../../files/" + thrFile.name, function (err) {
-    if (err)
-      return res.status(500).send(err);
-
-    process_thr_file_to_gcode(filename, () => {
+      if (fs.existsSync(__dirname + "/../../files/" + filename + ".thr"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + ".thr");
+      if (fs.existsSync(__dirname + "/../../files/" + filename + ".gcode"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + ".gcode");
+      if (fs.existsSync(__dirname + "/../../files/" + filename + ".png"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + ".png");
+      if (fs.existsSync(__dirname + "/../../files/" + filename + "-small.png"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + "-small.png");
+      if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).gcode"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).gcode");
+      if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).png"))
+        fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).png");
+    // Use the mv() method to place the file somewhere on your server
+    thrFile.mv(__dirname + "/../../files/" + thrFile.name, function (err) {
+      if (err)
+        return res.status(500).send(err);
       process_gcode_file_to_png(filename, () => {
         sharp(__dirname + "/../../files/" + filename + ".png")
           .extract({ left: 73, top: 73, width: 354, height: 354 }) // See https://www.desmos.com/calculator/rbn4tjbjjd for rationale of numbers
@@ -60,8 +58,48 @@ router.post('/', function (req, res) {
             });
       });
     });
+
+  }
+
+  var filename = thrFile.name.replace(".thr", "");
+
+    if (fs.existsSync(__dirname + "/../../files/" + filename + ".thr"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + ".thr");
+    if (fs.existsSync(__dirname + "/../../files/" + filename + ".gcode"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + ".gcode");
+    if (fs.existsSync(__dirname + "/../../files/" + filename + ".png"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + ".png");
+    if (fs.existsSync(__dirname + "/../../files/" + filename + "-small.png"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + "-small.png");
+    if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).gcode"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).gcode");
+    if (fs.existsSync(__dirname + "/../../files/" + filename + " (fill).png"))
+      fs.unlinkSync(__dirname + "/../../files/" + filename + " (fill).png");
+
+    // Use the mv() method to place the file somewhere on your server
+    thrFile.mv(__dirname + "/../../files/" + thrFile.name, function (err) {
+      if (err)
+        return res.status(500).send(err);
+
+      process_thr_file_to_gcode(filename, () => {
+        process_gcode_file_to_png(filename, () => {
+          sharp(__dirname + "/../../files/" + filename + ".png")
+            .extract({ left: 73, top: 73, width: 354, height: 354 }) // See https://www.desmos.com/calculator/rbn4tjbjjd for rationale of numbers
+            .resize(500) // assuming image ("/../../files/" + filename + ".png") is of width/height 500
+            .toFile(__dirname + "/../../files/" + filename + " (fill).png",
+              (err, info) => {
+                sharp(__dirname + "/../../files/" + filename + ".png")
+                  .resize(100)
+                  .toFile(__dirname + "/../../files/" + filename + "-small.png",
+                    (err, info) => {
+                      res.send('File uploaded!');
+                    }
+                  );
+              });
+        });
+      });
+    });
   });
-});
 
 router.post("/delete", function (req, res) {
   var filename = req.body.filename;
