@@ -24,7 +24,7 @@ router.post('/', function (req, res) {
     return res.status(400).send("Invalid file type");
   }
   if (thrFile.name.endsWith(".gcode")) {
-    //var filename = thrFile.name.replace(".gcode", "");
+    var filename = thrFile.name.replace(".gcode", "");
 
       if (fs.existsSync(__dirname + "/../../files/" + filename + ".thr"))
         fs.unlinkSync(__dirname + "/../../files/" + filename + ".thr");
