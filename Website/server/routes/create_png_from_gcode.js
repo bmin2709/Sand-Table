@@ -299,8 +299,8 @@ function process_file(
     title,
     callback,
     colors = { G0: '#EEEEEE', G1: '#EEEEEE', G2G3: "#EEEEEE" },
-    width = 1665,
-    height = 600) {
+    width = 1000,
+    height = 1000) {
     fs.readFile(__dirname + "/../../files/" + title + ".gcode", 'utf8', function (err, code) {
         if (err) {
             return console.log(err);
